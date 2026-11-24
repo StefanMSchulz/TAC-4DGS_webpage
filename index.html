@@ -1,94 +1,350 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>TAC-4DGS: Trajectory-Aware Compression for Rate-Distortion Optimized 4D Gaussian Splatting</title>
-<meta name="description" content="TAC-4DGS efficiently compresses volumetric video." />
+<meta name="description" content="TAC-4DGS brings 4D Gaussian Splatting trajectories under rate-distortion optimized entropy coding: 41.9% smaller bitstreams on N3V at nearly unchanged quality, with zero render-time overhead. WACV 2027." />
+<meta name="theme-color" content="#0e1113" />
 
-<!-- Social preview (edit before sharing the link) -->
-<meta property="og:title" content="TAC-4DGS: Under Construction" />
-<meta property="og:description" content="The TAC-4DGS project page is under construction. Please check back soon." />
-<meta property="og:image" content="assets/images/og-preview.jpg" />
+<!-- Social preview -->
+<meta property="og:title" content="TAC-4DGS: Trajectory-Aware Compression for 4D Gaussian Splatting (WACV 2027)" />
+<meta property="og:description" content="41.9% smaller 4DGS bitstreams on N3V at nearly unchanged quality, with zero render-time overhead." />
+<meta property="og:image" content="https://stefanmschulz.github.io/TAC-4DGS_webpage/assets/images/og-preview.jpg" />
+<meta property="og:url" content="https://stefanmschulz.github.io/TAC-4DGS_webpage/" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
 
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial,sans-serif' font-weight='700' font-size='26' fill='white'%3E4D%3C/text%3E%3C/svg%3E" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
-<style>
-  .under-construction { padding: 84px 0; text-align: center; }
-  .construction-card { max-width: 720px; margin: 0 auto; padding: 56px 28px; border: 1px solid #e2e8f0; border-radius: 18px; background: #f8fafc; }
-  .construction-icon { font-size: 3rem; margin-bottom: 18px; }
-  .construction-card .section-title { margin-bottom: 14px; }
-  .construction-card p { margin: 0; color: #475569; font-size: 1.1rem; line-height: 1.7; }
-  @media (max-width: 600px) { .under-construction { padding: 48px 0; } .construction-card { padding: 38px 20px; } }
-</style>
+
+<!-- Apply a saved theme before first paint -->
+<script>
+  try {
+    var t = localStorage.getItem('theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  } catch (e) {}
+</script>
 </head>
 <body>
 
-<header class="hero">
-  <div class="container">
-    <span class="venue-tag">WACV 2027</span>
-    <h1 class="title">
-      TAC-4DGS
-      <span class="subtitle">Trajectory-Aware Compression for Rate-Distortion Optimized 4D Gaussian Splatting</span>
-    </h1>
+<!-- Icons -->
+<svg class="sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></symbol>
+  <symbol id="i-arxiv" viewBox="0 0 24 24"><path d="M4 4l16 16"/><path d="M20 4 4 20"/></symbol>
+</svg>
 
-    <div class="authors">
-      <a href="https://stefanmschulz.github.io" target="_blank">Stefan Schulz</a><sup>1</sup> &nbsp;
-      <a href="https://cg.cs.uni-bonn.de/people/fernando-edelstein" target="_blank">Fernando Edelstein</a><sup>1</sup> &nbsp;
-      <a href="https://cg.cs.uni-bonn.de/people/hannah-droege" target="_blank">Hannah Dröge</a><sup>1</sup> &nbsp;
-      <a href="https://cg.cs.uni-bonn.de/people/reinhard-klein" target="_blank">Reinhard Klein</a><sup>1</sup> &nbsp;
-      <a href="https://cg.cs.uni-bonn.de/people/markus-plack" target="_blank">Markus Plack</a><sup>1</sup>
-    </div>
-    <div class="affiliations">
-      <sup>1</sup>University of Bonn, Germany
-    </div>
+<a class="skip-link" href="#main">Skip to content</a>
 
-    <div class="link-buttons">
-      <a class="link-btn" href="#">📄 Paper (PDF) - coming soon</a>
-      <a class="link-btn secondary" href="#">📚 arXiv - coming soon</a>
-      <a class="link-btn secondary" href="#">💻 Code - coming soon</a>
-      <a class="link-btn secondary" href="#">📊 Supplementary - coming soon</a>
-    </div>
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="#top" class="brand">TAC-4DGS</a>
+    <a class="home-link" href="https://stefanmschulz.github.io" title="Stefan Schulz · homepage">
+      <svg class="icon"><use href="#i-arrow-left"/></svg><span>Homepage</span>
+    </a>
+    <button class="theme-toggle" type="button" aria-label="Toggle dark mode">
+      <svg class="icon icon-moon"><use href="#i-moon"/></svg>
+      <svg class="icon icon-sun"><use href="#i-sun"/></svg>
+    </button>
   </div>
 </header>
 
-<main>
+<main id="main">
 
-  <!-- ============ UNDER CONSTRUCTION ============ -->
-  <section id="under-construction" class="under-construction">
-    <div class="container">
-      <div class="construction-card">
-        <div class="construction-icon" aria-hidden="true">🚧</div>
-        <h2 class="section-title">Under Construction</h2>
-        <p>We’re working on this page. Please check back soon for updates.</p>
+  <!-- ============ HERO ============ -->
+  <section id="top" class="hero">
+    <div class="container hero-inner">
+
+      <p class="venue-badge">
+        <span class="venue-badge-main"><span class="status-dot" aria-hidden="true"></span>WACV 2027</span>
+        <span class="venue-badge-full">IEEE/CVF Winter Conference on Applications of Computer Vision</span>
+      </p>
+
+      <h1 class="title">TAC-4DGS</h1>
+      <p class="subtitle">Trajectory-Aware Compression for <span class="nowrap">Rate-Distortion</span> Optimized 4D Gaussian Splatting</p>
+
+      <p class="authors">
+        <span class="author"><a href="https://stefanmschulz.github.io" target="_blank" rel="noopener">Stefan Schulz</a><sup>1</sup></span>
+        <span class="author"><a href="https://cg.cs.uni-bonn.de/people/fernando-edelstein" target="_blank" rel="noopener">Fernando Edelstein</a><sup>1</sup></span>
+        <span class="author"><a href="https://cg.cs.uni-bonn.de/people/hannah-droege" target="_blank" rel="noopener">Hannah Dröge</a><sup>1</sup></span>
+        <span class="author"><a href="https://cg.cs.uni-bonn.de/people/reinhard-klein" target="_blank" rel="noopener">Reinhard Klein</a><sup>1</sup></span>
+        <span class="author"><a href="https://cg.cs.uni-bonn.de/people/markus-plack" target="_blank" rel="noopener">Markus Plack</a><sup>1</sup></span>
+      </p>
+      <p class="affiliations">
+        <svg class="icon"><use href="#i-pin"/></svg>
+        <span><sup>1</sup>University of Bonn, Germany</span>
+      </p>
+
+      <div class="link-buttons">
+        <a class="btn btn-primary" href="https://stefanmschulz.github.io/certificates/tac4dgs.pdf" target="_blank" rel="noopener">
+          <svg class="icon"><use href="#i-file"/></svg>Paper
+        </a>
+        <a class="btn" href="https://stefanmschulz.github.io/TAC-4DGS_webpage/" target="_blank" rel="noopener">
+          <svg class="icon"><use href="#i-arxiv"/></svg>arXiv - Soon!
+        </a>
+        <a class="btn" href="https://github.com/StefanMSchulz/TAC-4DGS" target="_blank" rel="noopener">
+          <svg class="icon"><use href="#i-github"/></svg>Code
+        </a>
+        <a class="btn" href="https://stefanmschulz.github.io/TAC-4DGS_webpage/" target="_blank" rel="noopener">
+          <svg class="icon"><use href="#i-layers"/></svg>Supplementary - Soon!
+        </a>
       </div>
     </div>
   </section>
 
-  <!-- ============ BIBTEX ============ -->
-  <section id="bibtex">
+  <!-- ============ ABSTRACT ============ -->
+  <section id="abstract" class="section">
     <div class="container">
-      <h2 class="section-title">BibTeX</h2>
+      <h2 class="section-label">Abstract</h2>
+
+      <ul class="stats" aria-label="Key results">
+        <li><strong>−41.9%</strong><span>bitstream size on N3V,<br>−0.31&nbsp;dB PSNR</span></li>
+        <li><strong>−33.8%</strong><span>bitstream size on Technicolor,<br>+0.40&nbsp;dB PSNR</span></li>
+        <li><strong>93.6–99.1%</strong><span>smaller than the uncompressed<br>4DGS representation</span></li>
+        <li><strong>0&nbsp;ms</strong><span>render-time overhead,<br>same renderer as 4DGS</span></li>
+      </ul>
+
+      <div class="prose prose-justify">
+        <p>
+          4D Gaussian Splatting (4DGS) enables real-time rendering of complex dynamic scenes with high fidelity,
+          but its trajectory representation remains expensive to store. Recent rate-distortion optimized methods
+          substantially reduce this cost, yet important dynamic components remain largely uncompressed. In
+          particular, position wavelet approximation coefficients and rotation keyframes account for over 30% of
+          the total bitstream. The key challenge is not simply to quantize these trajectory attributes, but to
+          first put them into a form that can be quantized effectively. In their native form, these signals carry
+          structure that is benign for representation but detrimental to codebook learning: wavelet approximation
+          coefficient magnitudes vary by orders of magnitude across Gaussians, from near-static to fast-moving
+          points, risking severe gradient imbalance during quantization-aware training if not explicitly
+          conditioned, while absolute rotations and positions retain predictable temporal variation.
+        </p>
+        <p>
+          We present <strong>TAC-4DGS</strong>, a trajectory-aware compression method that reparameterizes these
+          components before quantization. A data-adaptive logarithmic companding transform balances wavelet
+          approximation coefficient scales and enables stable end-to-end codebook training, while inter-frame
+          delta rotation coding and reference-frame position subtraction remove predictable structure before
+          quantization. TAC-4DGS achieves 41.9% average bitstream reduction on N3V and 33.8% on Technicolor
+          relative to state-of-the-art 4DGS compression, with PSNR differences of only −0.31&nbsp;dB and
+          +0.40&nbsp;dB respectively. As a coding-level extension requiring no changes to the underlying rendering
+          pipeline, TAC-4DGS achieves a 93.6–99.1% total size reduction relative to the uncompressed 4DGS
+          representation.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VIDEO RESULTS ============ -->
+  <section id="videos" class="section">
+    <div class="container">
+      <h2 class="section-label">Visual results</h2>
+      <p class="section-intro">
+        Held-out test views on the Neural 3D Video dataset. Each video shows the ground truth on top, RD4DGS on
+        the left and TAC-4DGS (ours) on the right, at Level&nbsp;6 (weakest compression, largest files) and
+        Level&nbsp;1 (strongest compression, smallest files).
+      </p>
+
+      <div class="carousel" data-carousel>
+        <div class="carousel-track" tabindex="0" aria-label="Comparison videos, scroll horizontally">
+          <figure class="carousel-slide">
+            <video src="assets/videos/coffee_martini.mp4" poster="assets/videos/coffee_martini_poster.jpg"
+                   width="1352" height="1528" muted loop playsinline preload="metadata"></video>
+            <figcaption>Coffee Martini</figcaption>
+          </figure>
+          <figure class="carousel-slide">
+            <video src="assets/videos/cook_spinach.mp4" poster="assets/videos/cook_spinach_poster.jpg"
+                   width="1352" height="1528" muted loop playsinline preload="metadata"></video>
+            <figcaption>Cook Spinach</figcaption>
+          </figure>
+          <figure class="carousel-slide">
+            <video src="assets/videos/sear_steak.mp4" poster="assets/videos/sear_steak_poster.jpg"
+                   width="1352" height="1528" muted loop playsinline preload="metadata"></video>
+            <figcaption>Sear Steak</figcaption>
+          </figure>
+        </div>
+        <div class="carousel-nav">
+          <button class="icon-btn" type="button" data-carousel-prev aria-label="Previous video">
+            <svg class="icon"><use href="#i-chev-left"/></svg>
+          </button>
+          <div class="carousel-dots" data-carousel-dots></div>
+          <button class="icon-btn" type="button" data-carousel-next aria-label="Next video">
+            <svg class="icon"><use href="#i-chev-right"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INTERACTIVE VIEWER ============ -->
+  <section id="viewer" class="section">
+    <div class="container">
+      <h2 class="section-label">Interactive viewer</h2>
+      <p class="section-intro">
+        Explore the Technicolor Birthday scene in 4D. The scene is decoded from its compressed bitstream
+        directly in your browser, then reconstructed frame by frame and rendered in real time. Move around
+        freely and switch between TAC-4DGS and RD4DGS to compare quality and size.
+      </p>
+
+      <div class="viewer-embed" data-viewer>
+        <img class="viewer-poster" src="assets/images/viewer-poster.jpg" width="1280" height="720" loading="lazy"
+             alt="Still frame of the Birthday scene rendered in the interactive viewer">
+        <div class="viewer-launch">
+          <button class="btn btn-primary" type="button" data-viewer-load>
+            <svg class="icon"><use href="#i-play"/></svg>Launch interactive viewer
+          </button>
+          <span class="viewer-note">Downloads 7&nbsp;MB (TAC-4DGS) or 10&nbsp;MB (RD4DGS) · needs WebGL2</span>
+        </div>
+      </div>
+      <p class="viewer-links">
+        <a href="viewer/" target="_blank" rel="noopener">Open the viewer in a new tab ↗</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ METHOD ============ -->
+  <section id="method" class="section">
+    <div class="container">
+      <h2 class="section-label">How it works</h2>
+      <div class="prose">
+        <p class="lead">
+          In RD4DGS, position wavelet approximation coefficients and rotation keyframes make up
+          <em>over 30% of the bitstream</em> but skip rate-distortion optimized coding entirely.
+          TAC-4DGS brings them under entropy-constrained vector quantization (ECVQ).
+        </p>
+      </div>
+
+      <figure class="figure">
+        <div class="figure-tile">
+          <img src="assets/figures/pipeline.webp" width="2104" height="520" loading="lazy"
+               alt="TAC-4DGS pipeline: positions pass through reference-frame delta coding, a Haar wavelet, logarithmic magnitude companding and wavelet ECVQ; quaternions pass through delta-rotation coding and rotation ECVQ; static attributes use static ECVQ; all streams are entropy coded into the compressed bitstream.">
+        </div>
+        <figcaption>
+          Coloured boxes are our contributions; grey boxes are the existing RD4DGS pipeline.
+        </figcaption>
+      </figure>
+
+      <div class="cards">
+        <article class="card">
+          <h3><span class="swatch swatch-red" aria-hidden="true"></span>Logarithmic magnitude companding</h3>
+          <p>
+            Wavelet approximation coefficients range from near-static to fast-moving Gaussians, over orders of
+            magnitude. Quantized naively, this leads to gradient imbalances of up to 47&nbsp;000× during
+            training. A median-calibrated μ-law compander evens out the scale so the codebook trains stably end
+            to end.
+          </p>
+        </article>
+        <article class="card">
+          <h3><span class="swatch swatch-blue" aria-hidden="true"></span>Inter-frame δ-rotation coding</h3>
+          <p>
+            Instead of independent absolute quaternions, each keyframe stores its rotation relative to the
+            previous one, q<sub>k−1</sub><sup>−1</sup>·q<sub>k</sub>. These deltas cluster around the identity,
+            so codebook entries go to actual motion rather than global orientation.
+          </p>
+        </article>
+        <article class="card">
+          <h3><span class="swatch swatch-green" aria-hidden="true"></span>Reference-frame delta coding</h3>
+          <p>
+            Subtracting each Gaussian's reference position before the Haar wavelet removes the global scene
+            layout from the trajectory and shrinks the dynamic range the quantizer has to cover.
+          </p>
+        </article>
+      </div>
+
+      <p class="note">
+        TAC-4DGS works purely at the coding level: the 4DGS scene representation, training procedure and renderer
+        stay unchanged, so decoded scenes render exactly as fast as before.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ RESULTS TABLE ============ -->
+  <section id="results" class="section">
+    <div class="container">
+      <h2 class="section-label">Neural 3D Video results</h2>
+
+      <div class="table-wrap">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th scope="col" rowspan="2">Method</th>
+              <th scope="colgroup" colspan="7" class="th-group">PSNR (dB) ↑</th>
+              <th scope="col" rowspan="2">Size (MB) ↓</th>
+              <th scope="col" rowspan="2">FPS ↑</th>
+            </tr>
+            <tr>
+              <th scope="col">Coffee Martini</th>
+              <th scope="col">Cook Spinach</th>
+              <th scope="col">Cut Roasted Beef</th>
+              <th scope="col">Flame Salmon</th>
+              <th scope="col">Flame Steak</th>
+              <th scope="col">Sear Steak</th>
+              <th scope="col">Avg.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="group-row"><th colspan="10" scope="rowgroup">NeRF-based</th></tr>
+            <tr><td>NeRFPlayer</td><td>31.53</td><td>30.56</td><td>29.35</td><td>31.65</td><td>31.93</td><td>29.13</td><td>30.69</td><td>5130</td><td>0.05</td></tr>
+            <tr><td>HyperReel</td><td>28.37</td><td>32.30</td><td>32.92</td><td>28.26</td><td>32.20</td><td>32.57</td><td>31.10</td><td>360</td><td>2.0</td></tr>
+            <tr><td>K-Planes</td><td>29.99</td><td>32.60</td><td>31.82</td><td>30.44</td><td>32.38</td><td>32.52</td><td>31.63</td><td>311</td><td>0.3</td></tr>
+            <tr><td>MixVoxels-L</td><td>29.63</td><td>32.25</td><td>32.40</td><td>29.81</td><td>31.83</td><td>32.10</td><td>31.34</td><td>500</td><td>37.7</td></tr>
+            <tr><td>MixVoxels-X</td><td>30.39</td><td>32.31</td><td>32.63</td><td>30.60</td><td>32.10</td><td>32.33</td><td>31.73</td><td>500</td><td>4.6</td></tr>
+            <tr class="group-row"><th colspan="10" scope="rowgroup">3D/4DGS-based</th></tr>
+            <tr><td>4DGS</td><td>26.51</td><td>32.11</td><td>31.74</td><td>26.93</td><td>31.44</td><td>32.42</td><td>30.19</td><td>6057</td><td>72.0</td></tr>
+            <tr><td>4DGaussians</td><td>26.69</td><td>31.89</td><td>25.88</td><td>27.54</td><td>28.07</td><td>31.73</td><td>28.63</td><td>34</td><td>146.6</td></tr>
+            <tr><td>3DGStream</td><td>27.75</td><td>33.31</td><td>33.21</td><td>28.42</td><td>34.30</td><td>33.01</td><td>31.67</td><td>1200</td><td>–</td></tr>
+            <tr><td>Ex4DGS</td><td>28.79</td><td>33.23</td><td>33.73</td><td>29.29</td><td>33.91</td><td>33.69</td><td>32.11</td><td>115</td><td>72.3</td></tr>
+            <tr><td>RD4DGS Level 1</td><td>26.11</td><td>28.37</td><td>27.92</td><td>25.12</td><td>28.40</td><td>28.73</td><td>27.44</td><td>1.59</td><td>165.2</td></tr>
+            <tr><td>RD4DGS Level 6</td><td>27.97</td><td>30.87</td><td>30.55</td><td>27.23</td><td>31.42</td><td>32.28</td><td>30.05</td><td>13.86</td><td>104.1</td></tr>
+            <tr class="highlight-row"><td>Ours Level 1</td><td>25.84</td><td>28.05</td><td>27.75</td><td>25.28</td><td>27.81</td><td>28.88</td><td>27.27</td><td>0.99 <span class="delta">−37.8%</span></td><td>165.2</td></tr>
+            <tr class="highlight-row"><td>Ours Level 6</td><td>27.74</td><td>30.33</td><td>30.09</td><td>27.03</td><td>30.59</td><td>31.87</td><td>29.61</td><td>7.40 <span class="delta">−46.6%</span></td><td>104.1</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">
+        FPS measured on an NVIDIA RTX 3090. All numbers except RD4DGS and ours are taken from the original papers
+        or the RD4DGS paper; RD4DGS and TAC-4DGS were retrained. Level&nbsp;1 is the strongest compression (smallest files), Level&nbsp;6 the weakest.
+        Size changes are relative to RD4DGS at the same level.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ BIBTEX ============ -->
+  <section id="bibtex" class="section">
+    <div class="container">
+      <h2 class="section-label">BibTeX</h2>
       <div class="bibtex-wrap">
+        <button class="copy-btn" type="button" data-copy-target="bibtex-block">
+          <svg class="icon"><use href="#i-copy"/></svg><span>Copy</span>
+        </button>
         <pre class="bibtex" id="bibtex-block">@inproceedings{schulz2027tac4dgs,
-  title     = {TAC-4DGS: Trajectory-Aware Compression for Rate-Distortion Optimized 4D Gaussian Splatting},
-  author    = {Schulz, Stefan and Edelstein, Fernando and Dröge, Hannah and Klein, Reinhard and Plack, Markus},
+  title     = {{TAC-4DGS: Trajectory-Aware Compression for Rate-Distortion Optimized 4D Gaussian Splatting}},
+  author    = {Schulz, Stefan and Edelstein, Fernando and Dr{\"o}ge, Hannah and Klein, Reinhard and Plack, Markus},
   booktitle = {IEEE/CVF Winter Conference on Applications of Computer Vision (WACV) 2027},
   year      = {2027}
 }</pre>
-        <button class="copy-btn" data-copy-target="bibtex-block">Copy BibTeX</button>
       </div>
     </div>
   </section>
 
   <!-- ============ ACKNOWLEDGEMENTS ============ -->
-  <section id="acknowledgements">
+  <section id="acknowledgements" class="section">
     <div class="container">
-      <h2 class="section-title">Acknowledgements</h2>
+      <h2 class="section-label">Acknowledgements</h2>
       <div class="prose">
-        <p>This work has been funded by the Ministry of Culture and Science North Rhine-Westphalia under grant number 
-          PB22-063A (InVirtuo 4.0: Experimental Research in Virtual Environments), and by the state of North RhineWestphalia 
+        <p>This work has been funded by the Ministry of Culture and Science North Rhine-Westphalia under grant number
+          PB22-063A (InVirtuo 4.0: Experimental Research in Virtual Environments), and by the state of North Rhine-Westphalia
           as part of the Excellency Start-up Center.NRW (U-BO-GROW) under grant number 03ESCNW18B.</p>
       </div>
     </div>
@@ -96,9 +352,10 @@
 
 </main>
 
-<footer>
-  <div class="container">
-    <p>&copy; 2026 Stefan Schulz</p>
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <span>&copy; 2026 Stefan Schulz</span>
+    <a href="https://stefanmschulz.github.io">stefanmschulz.github.io</a>
   </div>
 </footer>
 

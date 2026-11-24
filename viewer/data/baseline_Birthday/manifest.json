@@ -1,0 +1,15 @@
+{
+  "duration": 50.0,
+  "interval": 10.0,
+  "time_shift": 13.0,
+  "var_pad": 3.0,
+  "interp_type": "cube",
+  "verify_frames": [
+    0,
+    10,
+    20,
+    30,
+    40,
+    49
+  ]
+}

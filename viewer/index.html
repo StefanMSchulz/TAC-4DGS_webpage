@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>TAC-4DGS Viewer</title>
+<meta name="description" content="Interactive 4D Gaussian Splatting viewer: TAC-4DGS and RD4DGS scenes decoded live in the browser from the compressed bitstream." />
+<meta name="theme-color" content="#0e1113" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f766e'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial,sans-serif' font-weight='700' font-size='26' fill='white'%3E4D%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<style>
+  /* Always dark: the canvas is a dark render surface. */
+  :root {
+    --bg: #0e1113;
+    --surface: #161a1d;
+    --surface-2: #1d2226;
+    --text: #e8eaec;
+    --text-muted: #9aa3aa;
+    --border: #2a3035;
+    --accent: #5eead4;
+    --accent-contrast: #062b27;
+    --glass: rgba(14, 17, 19, .72);
+    --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    overflow: hidden;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--text);
+    background: #000;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; }
+  a { color: var(--accent); text-decoration: none; }
+
+  #canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+    cursor: grab;
+  }
+  #canvas.dragging { cursor: grabbing; }
+
+  .ui {
+    position: fixed;
+    z-index: 2;
+    display: flex;
+    gap: .5rem;
+  }
+  .glass {
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+  }
+
+  /* ---- top bar ---- */
+  .top {
+    top: max(.75rem, env(safe-area-inset-top));
+    left: .75rem;
+    right: .75rem;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    pointer-events: none;
+  }
+  .top > * { pointer-events: auto; }
+  .title-block { padding: .45rem .9rem; border-radius: 14px; }
+  .title-block strong { font-weight: 700; letter-spacing: -.01em; }
+  .title-block span { display: block; font-size: .78rem; color: var(--text-muted); }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .5rem .9rem;
+    font-size: .85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+  .back-link:hover { color: var(--text); }
+  body.embed .back-link { display: none; }
+
+  .pickers {
+    top: calc(max(.75rem, env(safe-area-inset-top)) + 3.6rem);
+    left: .75rem;
+    right: .75rem;
+    flex-direction: column;
+    align-items: flex-start;
+    pointer-events: none;
+  }
+  .pickers > * { pointer-events: auto; }
+  .pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .25rem;
+    padding: .25rem;
+    max-width: 100%;
+  }
+  .pill-row .group-label {
+    align-self: center;
+    padding: 0 .4rem 0 .6rem;
+    font-family: var(--font-mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text-muted);
+  }
+  .pill-row button {
+    min-height: 2rem;
+    padding: .3rem .8rem;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .pill-row button:hover { color: var(--text); }
+  .pill-row button.active { color: var(--accent-contrast); background: var(--accent); }
+  .pill-row button .size {
+    margin-left: .35rem;
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    font-weight: 500;
+    opacity: .8;
+  }
+
+  /* ---- bottom bar ---- */
+  .bottom {
+    left: .75rem;
+    right: .75rem;
+    bottom: max(.75rem, env(safe-area-inset-bottom));
+    align-items: center;
+    padding: .35rem .5rem .35rem .35rem;
+  }
+  .icon-btn {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.4rem;
+    height: 2.4rem;
+    padding: 0;
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .icon-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .icon-btn.primary { color: var(--accent-contrast); background: var(--accent); border-color: var(--accent); }
+  .icon-btn svg { width: 1.05rem; height: 1.05rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .icon-btn.primary svg { fill: currentColor; stroke: none; }
+  #scrub { flex: 1; min-width: 4rem; accent-color: var(--accent); cursor: pointer; }
+  .frame-label {
+    flex-shrink: 0;
+    min-width: 4.8rem;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: .75rem;
+    color: var(--text-muted);
+  }
+
+  .hint {
+    right: .75rem;
+    bottom: calc(max(.75rem, env(safe-area-inset-bottom)) + 3.6rem);
+    padding: .35rem .75rem;
+    font-size: .75rem;
+    color: var(--text-muted);
+    transition: opacity .4s;
+  }
+  .hint.faded { opacity: 0; pointer-events: none; }
+  .stats {
+    left: .75rem;
+    bottom: calc(max(.75rem, env(safe-area-inset-bottom)) + 3.6rem);
+    padding: .35rem .75rem;
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    color: var(--text-muted);
+  }
+  .stats b { color: var(--text); font-weight: 500; }
+
+  .loading {
+    position: fixed;
+    inset: 0;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, .55);
+    transition: opacity .25s;
+  }
+  .loading.hidden { opacity: 0; pointer-events: none; }
+  .loading-card { display: flex; align-items: center; gap: .75rem; padding: .8rem 1.1rem; border-radius: 14px; }
+  .spinner {
+    width: 1.1rem;
+    height: 1.1rem;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error {
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    display: none;
+    place-items: center;
+    padding: 1.5rem;
+    text-align: center;
+    background: var(--bg);
+  }
+  .error.visible { display: grid; }
+  .error p { max-width: 28rem; color: var(--text-muted); }
+
+  @media (max-width: 640px) {
+    body { font-size: 13px; }
+    .hint { display: none; }
+    .pill-row button { padding: .25rem .6rem; }
+    .stats { bottom: calc(max(.75rem, env(safe-area-inset-bottom)) + 3.4rem); }
+  }
+  @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+</style>
+</head>
+<body>
+
+<canvas id="canvas" aria-label="Interactive 3D view of the scene. Drag to orbit, scroll or pinch to zoom, right-drag or two fingers to pan."></canvas>
+
+<div class="ui top">
+  <div class="title-block glass">
+    <strong>TAC-4DGS viewer</strong>
+    <span id="subtitle">Loading…</span>
+  </div>
+  <a class="back-link glass" href="../" title="Back to the project page">← Project page</a>
+</div>
+
+<div class="ui pickers">
+  <div class="pill-row glass" id="scenePicker" role="group" aria-label="Scene"></div>
+  <div class="pill-row glass" id="methodPicker" role="group" aria-label="Method">
+    <span class="group-label">Method</span>
+    <button type="button" data-method="tac4dgs" class="active">TAC-4DGS (ours)<span class="size" data-size="tac4dgs"></span></button>
+    <button type="button" data-method="baseline">RD4DGS<span class="size" data-size="baseline"></span></button>
+  </div>
+</div>
+
+<div class="ui stats glass" aria-live="off">
+  <b id="statSplats">–</b> Gaussians · <b id="statFps">–</b> fps
+</div>
+<div class="ui hint glass" id="hint">Drag to orbit · scroll to zoom · right-drag to pan · double-click to reset</div>
+
+<div class="ui bottom glass">
+  <button class="icon-btn primary" id="playBtn" type="button" aria-label="Pause">
+    <svg viewBox="0 0 24 24" id="playIcon"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+  </button>
+  <input id="scrub" type="range" min="0" max="49" value="0" step="1" aria-label="Frame" />
+  <span class="frame-label" id="frameLabel">0 / 49</span>
+  <button class="icon-btn" id="resetBtn" type="button" aria-label="Reset camera" title="Reset camera">
+    <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+  </button>
+  <button class="icon-btn" id="fullscreenBtn" type="button" aria-label="Full screen" title="Full screen">
+    <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+  </button>
+</div>
+
+<div class="loading" id="loading">
+  <div class="loading-card glass"><span class="spinner" aria-hidden="true"></span><span id="loadingStatus">Loading…</span></div>
+</div>
+
+<div class="error" id="error">
+  <div>
+    <h2>The viewer could not start</h2>
+    <p id="errorText">This browser does not support WebGL2, which the viewer needs. Please try a recent version of Chrome, Edge, Firefox or Safari.</p>
+  </div>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
